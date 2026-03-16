@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKANA Research</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080807;--bg2:#0f0f0d;--gold:#c8b87a;--gold2:#e8d49a;--dim:#2a2a24;--dim2:#3a3a32;--muted:#58584e;--text:#e8e6df;--text2:#a8a69f;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");pointer-events:none;z-index:1000;opacity:.5;}
+.screen{display:none;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+
+/* LAND */
+#land{align-items:center;justify-content:center;padding:60px 24px;position:relative;}
+#land::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(200,184,122,.035) 0%,transparent 60%);pointer-events:none;}
+.linner{max-width:500px;text-align:center;position:relative;z-index:2;}
+.lbadge{display:inline-block;font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:.38em;color:var(--gold);text-transform:uppercase;margin-bottom:36px;padding:5px 14px;border:1px solid rgba(200,184,122,.18);}
+.ltitle{font-family:'Cormorant Garamond',serif;font-size:clamp(44px,10vw,82px);font-weight:300;line-height:.95;color:#f5f3ee;letter-spacing:-.02em;margin-bottom:28px;}
+.ltitle em{font-style:italic;color:var(--gold);}
+.lsub{font-size:11px;color:var(--muted);line-height:2.1;margin-bottom:48px;letter-spacing:.04em;}
+.lsub span{color:var(--text2);}
+.btnbegin{font-family:'Syne',sans-serif;font-size:11px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;color:var(--bg);background:var(--gold);border:none;padding:16px 52px;cursor:pointer;transition:all .22s;position:relative;}
+.btnbegin::after{content:'';position:absolute;inset:-3px;border:1px solid rgba(200,184,122,.25);transition:all .22s;}
+.btnbegin:hover{background:var(--gold2);transform:translateY(-2px);}
+.btnbegin:hover::after{inset:-6px;opacity:.4;}
+.lnote{margin-top:20px;font-size:10px;color:var(--dim2);letter-spacing:.1em;}
+
+/* TEST */
+#test{flex-direction:column;}
+.thdr{position:sticky;top:0;z-index:100;background:rgba(8,8,7,.96);backdrop-filter:blur(20px);border-bottom:1px solid rgba(200,184,122,.07);padding:0 28px;height:52px;display:flex;align-items:center;justify-content:space-between;}
+.tlogo{font-family:'Syne',sans-serif;font-size:12px;font-weight:800;letter-spacing:.2em;color:var(--gold);}
+.tprog{flex:1;max-width:180px;margin:0 24px;}
+.tpct{display:flex;justify-content:space-between;font-size:8px;color:var(--dim2);letter-spacing:.15em;margin-bottom:6px;}
+.tbar{height:1px;background:var(--dim);}
+.tfill{height:100%;background:var(--gold);transition:width .7s cubic-bezier(.16,1,.3,1);}
+.tstep{font-size:10px;color:var(--muted);}
+.tbody{max-width:620px;margin:0 auto;padding:52px 24px 100px;width:100%;}
+
+/* QUESTION */
+.qwrap{animation:fadeUp .35s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.qnum{font-size:9px;letter-spacing:.2em;color:var(--dim2);margin-bottom:22px;text-transform:uppercase;}
+.qscene{font-family:'Cormorant Garamond',serif;font-size:clamp(19px,4vw,27px);font-weight:300;color:#f0ede6;line-height:1.55;margin-bottom:8px;}
+.qcn{font-size:12px;color:var(--muted);line-height:1.85;margin-bottom:34px;font-style:italic;}
+.opts{display:flex;flex-direction:column;gap:9px;}
+.obtn{display:flex;align-items:flex-start;gap:14px;padding:15px 17px;background:var(--bg2);border:1px solid var(--dim);color:var(--muted);cursor:pointer;text-align:left;font-family:'DM Mono',monospace;font-size:12px;line-height:1.7;transition:all .16s;width:100%;position:relative;overflow:hidden;}
+.obtn::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--gold);transform:scaleY(0);transition:transform .16s;transform-origin:bottom;}
+.obtn:hover{border-color:rgba(200,184,122,.35);color:var(--text2);}
+.obtn:hover::before{transform:scaleY(1);}
+.obtn.sel{border-color:var(--gold);background:rgba(200,184,122,.05);color:var(--text);}
+.obtn.sel::before{transform:scaleY(1);}
+.oletter{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;color:var(--gold);min-width:16px;margin-top:3px;flex-shrink:0;}
+.ocn{display:block;font-size:11px;color:var(--dim2);margin-top:3px;}
+.qnav{display:flex;justify-content:space-between;align-items:center;margin-top:44px;padding-top:24px;border-top:1px solid var(--dim);}
+.btnback{font-family:'Syne',sans-serif;font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--dim);padding:10px 20px;cursor:pointer;transition:all .18s;}
+.btnback:hover{color:var(--text2);border-color:var(--muted);}
+.btnnext{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--bg);background:var(--gold);border:none;padding:11px 28px;cursor:pointer;opacity:.22;pointer-events:none;transition:opacity .18s;}
+.btnnext.on{opacity:1;pointer-events:all;}
+
+/* LOAD */
+#load{align-items:center;justify-content:center;gap:32px;text-align:center;padding:40px;}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes breathe{0%,100%{opacity:.3}50%{opacity:1}}
+.lring{animation:rot 3s linear infinite;}
+.lmsg{font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:var(--gold);animation:breathe 2.4s ease-in-out infinite;}
+.lsub2{font-size:9px;letter-spacing:.28em;color:var(--dim2);text-transform:uppercase;}
+
+/* REPORT */
+#rep{flex-direction:column;}
+.rhero{background:var(--bg2);border-bottom:1px solid rgba(200,184,122,.07);padding:56px 36px 48px;position:relative;overflow:hidden;}
+.rhero::before{content:'';position:absolute;top:-120px;right:-120px;width:560px;height:560px;background:radial-gradient(circle,rgba(200,184,122,.035) 0%,transparent 60%);pointer-events:none;}
+.rebrow{font-size:9px;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;}
+.rheadline{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,7vw,68px);font-weight:300;color:#f5f3ee;line-height:.98;margin-bottom:16px;}
+.rheadline em{font-style:italic;color:var(--gold);}
+.rid{font-size:10px;color:var(--dim2);letter-spacing:.08em;}
+.rbody{max-width:700px;margin:0 auto;padding:56px 28px 100px;}
+.rseclabel{font-size:9px;letter-spacing:.3em;color:var(--gold);text-transform:uppercase;margin-bottom:20px;padding-bottom:10px;border-bottom:1px solid rgba(200,184,122,.1);}
+.insightblock{background:var(--bg2);border:1px solid rgba(200,184,122,.09);padding:40px;margin-bottom:16px;position:relative;}
+.insightblock::before{content:'';position:absolute;left:0;top:15%;bottom:15%;width:1px;background:linear-gradient(to bottom,transparent,var(--gold),transparent);opacity:.3;}
+.itext{font-family:'Cormorant Garamond',serif;font-size:16.5px;line-height:2.0;color:var(--text);}
+.itext h2{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin:32px 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(200,184,122,.1);}
+.itext h2:first-child{margin-top:0;}
+.itext p{margin-bottom:14px;color:var(--text2);font-size:15.5px;}
+.itext p:last-child{margin-bottom:0;}
+.itext .cnp{font-size:13.5px;color:var(--muted);font-style:italic;line-height:1.95;margin-bottom:14px;}
+.errblock{background:rgba(180,80,60,.05);border:1px solid rgba(180,80,60,.2);padding:28px;color:#c47a5a;font-size:12px;line-height:1.9;}
+.btnretake{font-family:'Syne',sans-serif;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);background:none;border:1px solid var(--dim);padding:12px 28px;cursor:pointer;transition:all .18s;margin-top:12px;}
+.btnretake:hover{color:var(--text2);border-color:var(--muted);}
+.rfooter{font-size:10px;color:var(--dim2);text-align:center;padding:28px 20px;border-top:1px solid rgba(200,184,122,.05);letter-spacing:.06em;}
+</style>
+</head>
+<body>
+
+<div id="land" class="screen active">
+  <div class="linner">
+    <svg width="54" height="54" viewBox="0 0 64 64" fill="none" style="margin-bottom:30px;display:block;margin-left:auto;margin-right:auto">
+      <circle cx="32" cy="32" r="30" stroke="#c8b87a" stroke-width="0.5"/>
+      <circle cx="32" cy="32" r="20" stroke="#c8b87a" stroke-width="0.4" stroke-dasharray="3 5" opacity="0.45"/>
+      <circle cx="32" cy="32" r="10" stroke="#c8b87a" stroke-width="0.3" opacity="0.25"/>
+      <line x1="2" y1="32" x2="62" y2="32" stroke="#c8b87a" stroke-width="0.3" opacity="0.2"/>
+      <line x1="32" y1="2" x2="32" y2="62" stroke="#c8b87a" stroke-width="0.3" opacity="0.2"/>
+      <line x1="10" y1="10" x2="54" y2="54" stroke="#c8b87a" stroke-width="0.3" opacity="0.12"/>
+      <line x1="54" y1="10" x2="10" y2="54" stroke="#c8b87a" stroke-width="0.3" opacity="0.12"/>
+      <circle cx="32" cy="32" r="2" fill="#c8b87a"/>
+      <circle cx="32" cy="12" r="1.2" fill="#c8b87a" opacity="0.45"/>
+      <circle cx="52" cy="32" r="1.2" fill="#c8b87a" opacity="0.45"/>
+      <circle cx="32" cy="52" r="1.2" fill="#c8b87a" opacity="0.45"/>
+      <circle cx="12" cy="32" r="1.2" fill="#c8b87a" opacity="0.45"/>
+    </svg>
+    <div class="lbadge">SKANA Research &middot; Adaptive Cognitive Audit</div>
+    <h1 class="ltitle">What kind of<br>mind do<br><em>you have?</em></h1>
+    <p class="lsub">A series of real situations.<br>No right answers. No categories.<br><span>Just your choices — and what they reveal.</span></p>
+    <button class="btnbegin" id="btnStart">Begin &middot; 开始</button>
+    <p class="lnote">~15 min &middot; 匿名 &middot; 每人的题目不同</p>
+  </div>
+</div>
+
+<div id="test" class="screen">
+  <div class="thdr">
+    <div class="tlogo">SKANA</div>
+    <div class="tprog">
+      <div class="tpct"><span>READING</span><span id="pctNum">0%</span></div>
+      <div class="tbar"><div class="tfill" id="pctFill" style="width:0%"></div></div>
+    </div>
+    <div class="tstep" id="stepNum">1 / 26</div>
+  </div>
+  <div class="tbody" id="testBody"></div>
+</div>
+
+<div id="load" class="screen">
+  <svg class="lring" width="80" height="80" viewBox="0 0 80 80">
+    <circle cx="40" cy="40" r="34" stroke="#1a1a16" stroke-width="1.5" fill="none"/>
+    <circle cx="40" cy="40" r="34" stroke="#c8b87a" stroke-width="1.5" fill="none" stroke-dasharray="60 154" stroke-linecap="round"/>
+  </svg>
+  <div class="lmsg" id="loadMsg">Reading your patterns...</div>
+  <div class="lsub2">Composing your profile &middot; 正在生成你的专属分析</div>
+</div>
+
+<div id="rep" class="screen">
+  <div class="rhero">
+    <div class="rebrow">SKANA Research &middot; Cognitive Profile &middot; 认知档案</div>
+    <h1 class="rheadline">Your<br><em>profile.</em></h1>
+    <div class="rid" id="repId"></div>
+  </div>
+  <div class="rbody">
+    <div class="rseclabel">Analysis &middot; 深度解析</div>
+    <div class="insightblock">
+      <div class="itext" id="insightText"></div>
+    </div>
+    <button class="btnretake" id="btnRetake">&#8635; Retake &middot; 重新开始</button>
+  </div>
+  <div class="rfooter">SKANA Research Ltd. &middot; England &amp; Wales &middot; For personal development only</div>
+</div>
+
+<script>
+// API calls handled server-side via /api/generate
+
+// ─────────────────────────────────────────────────────────────────
+// INTERNAL DIMENSIONS (never shown to user)
+// D1=risk_explore  D2=cognitive_adapt  D3=emotional_brake
+// D4=sensory_bw    D5=model_based      D6=holistic_insight
+// D7=uncertainty_tol  D8=distract_resist  D9=delay_gratify
+// D10=feedback_intern D11=psych_redund   D12=stimulus_seek
+// D13=principle_integrity
+//
+// Each question has:
+//   primary: the dimension this question is DESIGNED to measure
+//   secondary: other dimensions it also informs (with lower weight)
+//   opts: array of options, each with weights object
+// ─────────────────────────────────────────────────────────────────
+
+var QBANK = [
+
+  // ── D1: Risk & Exploration ──
+  {id:"r1", primary:"D1", secondary:["D7","D12"],
+   en:"You've been using the same coffee shop for two years. A new place opens next door — better reviews, higher prices.",
+   cn:"你有一家常去了两年的咖啡馆。隔壁新开了一家，评价更高，价格稍贵。",
+   opts:[
+    {l:"A", en:"Stay with your usual.", cn:"继续去老地方。", w:{D1:-2,D7:-1}},
+    {l:"B", en:"Try the new one.", cn:"试试新的。", w:{D1:2,D7:1}},
+    {l:"C", en:"Try it once, keep both options open.", cn:"试一次，但两个都保留。", w:{D1:1,D7:0}}
+  ]},
+  {id:"r2", primary:"D1", secondary:["D9","D12"],
+   en:"A project you weren't planning to take on suddenly excites you. Your schedule is full.",
+   cn:"一个你没打算接的项目突然让你很兴奋。你的日程已经排满了。",
+   opts:[
+    {l:"A", en:"Don't take it — you're already stretched.", cn:"不接，你已经很忙了。", w:{D1:-2,D9:1}},
+    {l:"B", en:"Take it anyway, figure out the schedule later.", cn:"接了再说，时间表的事之后再想。", w:{D1:2,D12:1}},
+    {l:"C", en:"Restructure current commitments to make room.", cn:"重新安排现有承诺腾出空间。", w:{D1:1,D9:1,D13:1}}
+  ]},
+  {id:"r3", primary:"D1", secondary:["D7"],
+   en:"You're offered a shortcut that gets you to the result faster but skips steps you usually take.",
+   cn:"有人给你一个捷径，能更快达成结果，但会跳过你通常会走的步骤。",
+   opts:[
+    {l:"A", en:"Take the shortcut.", cn:"走捷径。", w:{D1:2,D7:1}},
+    {l:"B", en:"Stick to your process.", cn:"坚持你的流程。", w:{D1:-2,D7:-1}},
+    {l:"C", en:"Investigate the shortcut first.", cn:"先研究一下这条捷径。", w:{D1:0,D6:2}}
+  ]},
+
+  // ── D2: Cognitive Adaptability ──
+  {id:"c1", primary:"D2", secondary:["D6","D3"],
+   en:"You've been working on something for weeks. Someone points out a fundamental flaw in your approach.",
+   cn:"你已经在一件事上工作了几周。有人指出你方法上有一个根本性的缺陷。",
+   opts:[
+    {l:"A", en:"Defend your approach first.", cn:"先捍卫你的方法。", w:{D2:-2,D3:-1}},
+    {l:"B", en:"Feel frustrated but investigate whether they're right.", cn:"感到沮丧，但去验证他们说的是否正确。", w:{D2:2,D3:1}},
+    {l:"C", en:"Immediately assume they're right and overhaul.", cn:"立刻认为他们是对的，开始大改。", w:{D2:1,D3:2}}
+  ]},
+  {id:"c2", primary:"D2", secondary:["D5","D10"],
+   en:"You receive contradictory feedback from two people you both respect.",
+   cn:"你收到了两个你都尊重的人给出的相互矛盾的反馈。",
+   opts:[
+    {l:"A", en:"Go with the one that matches your instinct.", cn:"选择符合你直觉的那个。", w:{D2:-1,D6:2}},
+    {l:"B", en:"Try to reconcile both into something new.", cn:"尝试把两者融合成一个新方向。", w:{D2:2,D5:1}},
+    {l:"C", en:"Ask each person to explain their reasoning.", cn:"分别请他们解释他们的逻辑。", w:{D2:1,D5:2}}
+  ]},
+  {id:"c3", primary:"D2", secondary:["D13"],
+   en:"A belief you've held for years turns out to be based on flawed information.",
+   cn:"你持有多年的一个信念，被发现是基于错误信息的。",
+   opts:[
+    {l:"A", en:"Update the belief immediately.", cn:"立刻更新这个信念。", w:{D2:2,D13:-1}},
+    {l:"B", en:"Update it gradually after further research.", cn:"经过进一步研究后逐渐更新。", w:{D2:1,D13:1}},
+    {l:"C", en:"Question the new information that challenges it.", cn:"质疑那个挑战它的新信息。", w:{D2:-2,D13:2}}
+  ]},
+
+  // ── D3: Emotional Brake ──
+  {id:"e1", primary:"D3", secondary:["D8","D9"],
+   en:"You're deep in focused work. A message arrives that you can tell is not urgent but is interesting.",
+   cn:"你正在深度工作中。一条消息进来，你能看出不紧急但很有趣。",
+   opts:[
+    {l:"A", en:"Stop and read it.", cn:"停下来看。", w:{D3:-2,D8:-1}},
+    {l:"B", en:"Finish your current thread first.", cn:"先完成当前的思路。", w:{D3:2,D8:2}},
+    {l:"C", en:"Glance at it quickly without fully breaking focus.", cn:"快速瞥一眼，不完全打断专注。", w:{D3:1,D8:1}}
+  ]},
+  {id:"e2", primary:"D3", secondary:["D12"],
+   en:"Something you've been wanting is on sale for the next 2 hours only.",
+   cn:"你一直想要的东西只在接下来2小时内打折。",
+   opts:[
+    {l:"A", en:"Buy it immediately.", cn:"立刻买。", w:{D3:-2,D12:2}},
+    {l:"B", en:"Set a timer and decide at the last minute.", cn:"设个计时器，在最后一刻决定。", w:{D3:1,D9:1}},
+    {l:"C", en:"Let the deadline pass. If you still want it, you'll find a way.", cn:"让截止时间过去。如果还想要，总能找到办法。", w:{D3:2,D9:2}}
+  ]},
+  {id:"e3", primary:"D3", secondary:["D2","D13"],
+   en:"In an argument, the other person says something that genuinely stings.",
+   cn:"在一次争论中，对方说了一句真的让你很受伤的话。",
+   opts:[
+    {l:"A", en:"Respond immediately with full force.", cn:"立刻全力回应。", w:{D3:-2,D13:-1}},
+    {l:"B", en:"Go quiet and process before responding.", cn:"先沉默，消化之后再回应。", w:{D3:2,D2:1}},
+    {l:"C", en:"Acknowledge it but redirect the conversation.", cn:"承认它，但转移对话方向。", w:{D3:1,D13:1}}
+  ]},
+  {id:"e4", primary:"D3", secondary:["D9"],
+   en:"You have a habit you know you should stop. You've tried before.",
+   cn:"你有一个知道应该改掉的习惯。你之前也尝试过。",
+   opts:[
+    {l:"A", en:"Keep trying with willpower alone.", cn:"继续靠意志力硬撑。", w:{D3:1,D9:1}},
+    {l:"B", en:"Design a system that makes the habit harder.", cn:"设计一个让这个习惯更难执行的系统。", w:{D3:2,D5:2}},
+    {l:"C", en:"Accept it and stop trying to change.", cn:"接受它，停止尝试改变。", w:{D3:-2,D9:-2}}
+  ]},
+
+  // ── D4: Sensory Bandwidth ──
+  {id:"s1", primary:"D4", secondary:["D8","D11"],
+   en:"After a full day of back-to-back meetings and social interaction, you feel:",
+   cn:"经历了一整天密集的会议和社交互动后，你感觉：",
+   opts:[
+    {l:"A", en:"Drained. Need quiet time alone to recover.", cn:"精力耗尽。需要独处时间来恢复。", w:{D4:2,D11:1}},
+    {l:"B", en:"Neutral — depends on the quality of conversations.", cn:"中性，取决于对话的质量。", w:{D4:0,D11:0}},
+    {l:"C", en:"Energized. Social input charges you.", cn:"精力充沛。社交输入让你更有能量。", w:{D4:-2,D11:-1}}
+  ]},
+  {id:"s2", primary:"D4", secondary:["D6"],
+   en:"You're in a busy environment — noise, movement, multiple conversations around you.",
+   cn:"你处于一个嘈杂的环境中——噪音、人来人往，周围有多个对话在进行。",
+   opts:[
+    {l:"A", en:"Hard to think. You need to leave or isolate.", cn:"很难思考。你需要离开或隔离。", w:{D4:2,D6:-1}},
+    {l:"B", en:"You can function but prefer less stimulation.", cn:"可以运作，但更喜欢少一点刺激。", w:{D4:1,D6:0}},
+    {l:"C", en:"You tune it out naturally and stay focused.", cn:"你自然地屏蔽掉，保持专注。", w:{D4:-2,D8:1}}
+  ]},
+
+  // ── D5: Model-Based Processing ──
+  {id:"m1", primary:"D5", secondary:["D6","D9"],
+   en:"You're learning something new and complex. What helps you most?",
+   cn:"你在学一个新的复杂事物。什么对你最有帮助？",
+   opts:[
+    {l:"A", en:"Understanding the underlying logic first.", cn:"先理解底层逻辑。", w:{D5:2,D9:1}},
+    {l:"B", en:"Seeing concrete examples and working backwards.", cn:"看具体例子再往回推理。", w:{D5:-1,D6:2}},
+    {l:"C", en:"Just trying it and learning from mistakes.", cn:"直接上手，从错误中学习。", w:{D5:-2,D1:1}}
+  ]},
+  {id:"m2", primary:"D5", secondary:["D6"],
+   en:"You're solving a problem you've never seen before.",
+   cn:"你在解决一个从未见过的问题。",
+   opts:[
+    {l:"A", en:"Map out the structure before doing anything.", cn:"先画出结构再做任何事。", w:{D5:2,D6:1}},
+    {l:"B", en:"Trust your gut and start moving.", cn:"相信直觉，开始行动。", w:{D5:-2,D6:2,D1:1}},
+    {l:"C", en:"Look for patterns from similar problems.", cn:"寻找类似问题的规律。", w:{D5:1,D6:1}}
+  ]},
+
+  // ── D6: Holistic Insight ──
+  {id:"h1", primary:"D6", secondary:["D5","D2"],
+   en:"You have a strong feeling about a decision but can't fully articulate why.",
+   cn:"你对一个决定有强烈的感觉，但说不清楚为什么。",
+   opts:[
+    {l:"A", en:"Act on it — your intuition is usually right.", cn:"按直觉行动——你的直觉通常是对的。", w:{D6:2,D5:-1}},
+    {l:"B", en:"Try to work out the logic before acting.", cn:"在行动之前尝试梳理出逻辑。", w:{D6:0,D5:2}},
+    {l:"C", en:"Hold it and wait for more information.", cn:"先搁置，等待更多信息。", w:{D6:-1,D7:1}}
+  ]},
+  {id:"h2", primary:"D6", secondary:["D13"],
+   en:"You meet someone new. Within the first few minutes you form a strong impression.",
+   cn:"你认识了一个新人。在最初几分钟内你形成了强烈的印象。",
+   opts:[
+    {l:"A", en:"You trust it. First impressions are rarely wrong for you.", cn:"你相信它。第一印象对你来说很少出错。", w:{D6:2,D13:1}},
+    {l:"B", en:"You note it but stay open to being surprised.", cn:"你记下它，但保持开放态度。", w:{D6:1,D2:1}},
+    {l:"C", en:"You don't trust snap judgments.", cn:"你不相信快速判断。", w:{D6:-2,D5:1}}
+  ]},
+
+  // ── D7: Uncertainty Tolerance ──
+  {id:"u1", primary:"D7", secondary:["D12","D1"],
+   en:"You're offered a role that's a significant step up, but you only meet 60% of the requirements.",
+   cn:"你获得了一个重要晋升机会，但你只符合岗位要求的60%。",
+   opts:[
+    {l:"A", en:"Decline — you're not ready.", cn:"拒绝，你还没准备好。", w:{D7:-2,D12:-1}},
+    {l:"B", en:"Apply and be honest about the gaps.", cn:"申请，坦诚说明不足之处。", w:{D7:2,D13:1}},
+    {l:"C", en:"Apply and project full confidence.", cn:"申请，展现完全的自信。", w:{D7:2,D12:2,D2:-1}}
+  ]},
+  {id:"u2", primary:"D7", secondary:["D6"],
+   en:"You must make a significant decision with incomplete information and a hard deadline.",
+   cn:"你必须在信息不完整且有严格截止日期的情况下做出重大决定。",
+   opts:[
+    {l:"A", en:"Ask for more time.", cn:"请求更多时间。", w:{D7:-2,D9:-1}},
+    {l:"B", en:"Make the best call now.", cn:"现在做出最佳判断。", w:{D7:2,D12:1}},
+    {l:"C", en:"Identify the one critical unknown and resolve only that.", cn:"找出最关键的未知，只解决那一个。", w:{D7:1,D6:2,D5:2}}
+  ]},
+  {id:"u3", primary:"D7", secondary:["D13","D1"],
+   en:"An opportunity you're excited about requires giving up something stable.",
+   cn:"一个让你兴奋的机会需要放弃某个稳定的东西。",
+   opts:[
+    {l:"A", en:"The stability is too valuable.", cn:"稳定太重要了。", w:{D7:-2,D12:-2}},
+    {l:"B", en:"Evaluate it carefully and potentially take it.", cn:"认真评估，可能会接受。", w:{D7:1,D12:1}},
+    {l:"C", en:"Take it. Stability is just managed fear.", cn:"接受它。稳定只是被管理的恐惧。", w:{D7:2,D12:2,D1:2}}
+  ]},
+
+  // ── D8: Focus & Distraction Resistance ──
+  {id:"f1", primary:"D8", secondary:["D3","D9"],
+   en:"You're in deep focus. Someone nearby starts a conversation you're not part of.",
+   cn:"你正在深度专注中。旁边有人开始了一段你没有参与的对话。",
+   opts:[
+    {l:"A", en:"Immediately distracted — you can't block it out.", cn:"立刻被分散，你无法屏蔽它。", w:{D8:-2,D4:1}},
+    {l:"B", en:"Slightly aware but can return to focus.", cn:"略有感知，但能回到专注状态。", w:{D8:1,D4:0}},
+    {l:"C", en:"You barely register it.", cn:"你几乎没有注意到。", w:{D8:2,D4:-1}}
+  ]},
+  {id:"f2", primary:"D8", secondary:["D9"],
+   en:"A task you find genuinely boring but necessary.",
+   cn:"一项你觉得真的很无聊但又必要的任务。",
+   opts:[
+    {l:"A", en:"Gets done eventually, with many interruptions.", cn:"最终完成，但中途中断很多次。", w:{D8:-2,D9:-2}},
+    {l:"B", en:"You push through with effort.", cn:"你费力地坚持下来。", w:{D8:1,D9:1}},
+    {l:"C", en:"You get it done systematically before moving on.", cn:"你系统性地完成后再继续其他事。", w:{D8:2,D9:2}}
+  ]},
+
+  // ── D9: Long-term Orientation ──
+  {id:"l1", primary:"D9", secondary:["D13","D3"],
+   en:"You've committed to something publicly. Halfway through, you realize it was a mistake.",
+   cn:"你已经公开承诺了一件事。做到一半，你意识到这是个错误。",
+   opts:[
+    {l:"A", en:"Finish it anyway — you gave your word.", cn:"还是完成它，你给出了承诺。", w:{D9:1,D13:2}},
+    {l:"B", en:"Stop and acknowledge the mistake clearly.", cn:"停下来，清楚地承认错误。", w:{D9:1,D2:2,D13:1}},
+    {l:"C", en:"Quietly redirect without making a big deal.", cn:"悄悄改变方向，不大张旗鼓。", w:{D9:0,D13:-1}}
+  ]},
+  {id:"l2", primary:"D9", secondary:["D12"],
+   en:"You have a choice between a smaller certain gain now, or a larger uncertain gain in two years.",
+   cn:"你可以选择现在的一个较小确定收益，或两年后的一个较大不确定收益。",
+   opts:[
+    {l:"A", en:"Take the certain gain now.", cn:"拿现在确定的收益。", w:{D9:-2,D12:-1}},
+    {l:"B", en:"Take the uncertain future gain.", cn:"选不确定的未来收益。", w:{D9:2,D12:2}},
+    {l:"C", en:"Depends on what 'uncertain' means exactly.", cn:"取决于不确定的程度。", w:{D9:1,D5:1}}
+  ]},
+
+  // ── D10: Internal Feedback Processing ──
+  {id:"fb1", primary:"D10", secondary:["D2","D13"],
+   en:"You reflect on a decision from a year ago that turned out wrong.",
+   cn:"你回想起一年前做的一个决定，结果证明是错的。",
+   opts:[
+    {l:"A", en:"You were working with what you had at the time.", cn:"当时你用了手头的信息做了最好的决定。", w:{D10:-1,D2:-1}},
+    {l:"B", en:"You should have seen the signs.", cn:"你应该看出那些迹象的。", w:{D10:1,D2:1}},
+    {l:"C", en:"Analyze what you'd do differently, then move on.", cn:"分析如果重来会怎么做，然后翻篇。", w:{D10:2,D2:2}}
+  ]},
+  {id:"fb2", primary:"D10", secondary:["D13"],
+   en:"You're asked to evaluate your own performance on a recent project.",
+   cn:"你被要求对自己最近参与的项目进行自我评估。",
+   opts:[
+    {l:"A", en:"Focus on what went well.", cn:"侧重说进展顺利的地方。", w:{D10:-2,D13:-1}},
+    {l:"B", en:"Balanced and honest account.", cn:"平衡、诚实的评估。", w:{D10:1,D13:1}},
+    {l:"C", en:"Lead with what failed and what you'd fix.", cn:"先说哪里失败了以及你会怎么改。", w:{D10:2,D13:2}}
+  ]},
+
+  // ── D11: Autonomy Drive ──
+  {id:"a1", primary:"D11", secondary:["D13","D8"],
+   en:"You're part of a team working toward a shared goal. You strongly disagree with the chosen direction.",
+   cn:"你是一个团队的一员，朝着共同目标努力。你强烈不同意选择的方向。",
+   opts:[
+    {l:"A", en:"Voice your disagreement clearly, then commit if outvoted.", cn:"清楚地表达不同意，如果被否决就执行。", w:{D11:1,D13:2}},
+    {l:"B", en:"Go along — cohesion matters more.", cn:"随大流，凝聚力更重要。", w:{D11:-2,D13:-1}},
+    {l:"C", en:"Push until they see your point.", cn:"一直坚持直到他们理解你的观点。", w:{D11:2,D13:1}}
+  ]},
+  {id:"a2", primary:"D11", secondary:["D7"],
+   en:"You're working within a system with rules you find limiting but not wrong.",
+   cn:"你在一个有限制性但并不错误规则的系统中工作。",
+   opts:[
+    {l:"A", en:"Work within the rules.", cn:"在规则范围内工作。", w:{D11:-2,D13:1}},
+    {l:"B", en:"Work around them where you can.", cn:"在可能的地方绕过它们。", w:{D11:1,D13:-1}},
+    {l:"C", en:"Try to change the rules.", cn:"尝试改变规则。", w:{D11:2,D13:1,D7:1}}
+  ]},
+
+  // ── D12: Stimulus Seeking ──
+  {id:"st1", primary:"D12", secondary:["D1","D7"],
+   en:"A high-risk high-reward opportunity appears. The downside is significant but manageable.",
+   cn:"一个高风险高回报的机会出现了。下行风险很大但可以承受。",
+   opts:[
+    {l:"A", en:"Pass. The risk isn't worth it.", cn:"不参与。风险不值得。", w:{D12:-2,D1:-1}},
+    {l:"B", en:"Take it.", cn:"参与。", w:{D12:2,D1:2}},
+    {l:"C", en:"Investigate until you feel the risk is understood.", cn:"深入调查直到你充分理解风险。", w:{D12:1,D5:2}}
+  ]},
+  {id:"st2", primary:"D12", secondary:["D9"],
+   en:"You've achieved your goal. The next level requires significantly more effort and risk.",
+   cn:"你实现了你的目标。下一个层次需要大得多的努力和风险。",
+   opts:[
+    {l:"A", en:"Consolidate what you have.", cn:"巩固现有成果。", w:{D12:-2,D9:-1}},
+    {l:"B", en:"Push to the next level.", cn:"迈向下一个层次。", w:{D12:2,D1:2}},
+    {l:"C", en:"Take a break, then reassess.", cn:"休息一下，再重新评估。", w:{D12:0,D9:1}}
+  ]},
+
+  // ── D13: Principle Consistency ──
+  {id:"p1", primary:"D13", secondary:["D10","D11"],
+   en:"A profitable opportunity conflicts with a value you hold privately — no one else would know.",
+   cn:"一个有利可图的机会与你私下持有的一个价值观相冲突——没有人会知道。",
+   opts:[
+    {l:"A", en:"Take the opportunity.", cn:"抓住机会。", w:{D13:-2,D12:1}},
+    {l:"B", en:"Don't take it.", cn:"不接受。", w:{D13:2,D10:1}},
+    {l:"C", en:"Find a way to pursue it that doesn't fully compromise the value.", cn:"找一种不完全违背价值观的方式去追求它。", w:{D13:1,D5:1}}
+  ]},
+  {id:"p2", primary:"D13", secondary:["D2"],
+   en:"You've made a commitment. A better option has since appeared.",
+   cn:"你已经做出了承诺。此后出现了一个更好的选择。",
+   opts:[
+    {l:"A", en:"Honor the commitment regardless.", cn:"无论如何履行承诺。", w:{D13:2,D9:1}},
+    {l:"B", en:"Renegotiate honestly.", cn:"诚实地重新协商。", w:{D13:1,D2:1}},
+    {l:"C", en:"Take the better option — circumstances changed.", cn:"选择更好的选项，情况已经变了。", w:{D13:-2,D12:1}}
+  ]},
+  {id:"p3", primary:"D13", secondary:["D11"],
+   en:"A colleague takes credit for work you contributed significantly to.",
+   cn:"一个同事把你大量贡献的工作据为己有。",
+   opts:[
+    {l:"A", en:"Let it go.", cn:"算了。", w:{D13:-2,D11:-1}},
+    {l:"B", en:"Address it with them privately.", cn:"私下找他们谈。", w:{D13:2,D11:1}},
+    {l:"C", en:"Make your contribution visible to others.", cn:"让其他人知道你的贡献。", w:{D13:1,D11:2}}
+  ]}
+];
+
+// ─── ADAPTIVE ENGINE ───
+// State
+var sessionAnswers = []; // [{qid, letter, weights}]
+var dimScores = {D1:0,D2:0,D3:0,D4:0,D5:0,D6:0,D7:0,D8:0,D9:0,D10:0,D11:0,D12:0,D13:0};
+var dimCounts = {D1:0,D2:0,D3:0,D4:0,D5:0,D6:0,D7:0,D8:0,D9:0,D10:0,D11:0,D12:0,D13:0};
+var usedQids = {};
+var currentQ = null;
+var totalQs = 26;
+var loadTimer = null;
+
+// Find next best question using information gain
+// Prioritize the dimension with the least data (lowest count)
+// Avoid repeating questions
+function pickNextQuestion() {
+  // Find the dimension with least coverage
+  var minCount = Infinity;
+  var targetDim = 'D1';
+  var dims = Object.keys(dimCounts);
+  // Shuffle dims slightly to avoid always picking same tie-breaker
+  dims = dims.sort(function() { return Math.random() - 0.5; });
+  for (var i = 0; i < dims.length; i++) {
+    var d = dims[i];
+    if (dimCounts[d] < minCount) {
+      minCount = dimCounts[d];
+      targetDim = d;
+    }
+  }
+
+  // Find unused questions that primarily target this dimension
+  var candidates = QBANK.filter(function(q) {
+    return q.primary === targetDim && !usedQids[q.id];
+  });
+
+  // If no primary candidates, find questions with this as secondary
+  if (candidates.length === 0) {
+    candidates = QBANK.filter(function(q) {
+      return !usedQids[q.id] && q.secondary && q.secondary.indexOf(targetDim) !== -1;
+    });
+  }
+
+  // If still nothing, pick any unused question
+  if (candidates.length === 0) {
+    candidates = QBANK.filter(function(q) { return !usedQids[q.id]; });
+  }
+
+  if (candidates.length === 0) return null;
+
+  // Pick randomly from top candidates to avoid predictability
+  return candidates[Math.floor(Math.random() * Math.min(candidates.length, 3))];
+}
+
+function applyWeights(weights) {
+  for (var d in weights) {
+    if (dimScores.hasOwnProperty(d)) {
+      dimScores[d] += weights[d];
+      dimCounts[d]++;
+    }
+  }
+}
+
+function normalizeScores() {
+  var result = {};
+  for (var d in dimScores) {
+    var raw = dimScores[d];
+    var normalized = Math.max(0, Math.min(100, 50 + raw * 4));
+    result[d] = Math.round(normalized);
+  }
+  return result;
+}
+
+// ─── UI ───
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function startTest() {
+  sessionAnswers = [];
+  dimScores = {D1:0,D2:0,D3:0,D4:0,D5:0,D6:0,D7:0,D8:0,D9:0,D10:0,D11:0,D12:0,D13:0};
+  dimCounts = {D1:0,D2:0,D3:0,D4:0,D5:0,D6:0,D7:0,D8:0,D9:0,D10:0,D11:0,D12:0,D13:0};
+  usedQids = {};
+  currentQ = null;
+  advanceToNext();
+  show('test');
+}
+
+function advanceToNext() {
+  currentQ = pickNextQuestion();
+  if (!currentQ) {
+    generateReport();
+    return;
+  }
+  renderQuestion(currentQ, null);
+}
+
+function renderQuestion(q, chosen) {
+  var num = sessionAnswers.length + 1;
+  var pct = Math.round((num / totalQs) * 100);
+  document.getElementById('pctFill').style.width = pct + '%';
+  document.getElementById('pctNum').textContent = pct + '%';
+  document.getElementById('stepNum').textContent = num + ' / ' + totalQs;
+
+  var h = '<div class="qwrap">';
+  h += '<div class="qnum">Situation ' + num + ' of ' + totalQs + '</div>';
+  h += '<div class="qscene">' + q.en + '</div>';
+  h += '<div class="qcn">' + q.cn + '</div>';
+  h += '<div class="opts">';
+  for (var i = 0; i < q.opts.length; i++) {
+    var o = q.opts[i];
+    var cls = 'obtn' + (chosen === o.l ? ' sel' : '');
+    h += '<button class="' + cls + '" data-l="' + o.l + '">';
+    h += '<span class="oletter">' + o.l + '</span>';
+    h += '<span>' + o.en + '<span class="ocn">' + o.cn + '</span></span>';
+    h += '</button>';
+  }
+  h += '</div>';
+
+  var isDone = sessionAnswers.length >= totalQs - 1;
+  var nextLbl = isDone ? 'See my profile &middot; 查看报告' : 'Next &rarr;';
+  var backVisible = sessionAnswers.length > 0;
+
+  h += '<div class="qnav">';
+  h += backVisible ? '<button class="btnback" id="btnBack">&larr; Back</button>' : '<div></div>';
+  h += '<button class="btnnext' + (chosen ? ' on' : '') + '" id="btnNext">' + nextLbl + '</button>';
+  h += '</div></div>';
+
+  var body = document.getElementById('testBody');
+  body.innerHTML = h;
+
+  // Temp store chosen for this render cycle
+  var pendingChoice = chosen;
+
+  body.querySelectorAll('.obtn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      pendingChoice = this.getAttribute('data-l');
+      renderQuestion(currentQ, pendingChoice);
+    });
+  });
+
+  var btnNext = document.getElementById('btnNext');
+  if (btnNext) btnNext.addEventListener('click', function() {
+    if (!pendingChoice) return;
+    // Apply weights
+    var opt = currentQ.opts.filter(function(o) { return o.l === pendingChoice; })[0];
+    if (opt && opt.w) applyWeights(opt.w);
+    // Mark used
+    usedQids[currentQ.id] = true;
+    // Record
+    sessionAnswers.push({ qid: currentQ.id, letter: pendingChoice });
+
+    if (sessionAnswers.length >= totalQs) {
+      generateReport();
+    } else {
+      currentQ = pickNextQuestion();
+      if (!currentQ) {
+        generateReport();
+      } else {
+        renderQuestion(currentQ, null);
+      }
+    }
+  });
+
+  var btnBack = document.getElementById('btnBack');
+  if (btnBack) btnBack.addEventListener('click', function() {
+    if (sessionAnswers.length === 0) return;
+    // Pop last answer
+    var last = sessionAnswers.pop();
+    usedQids[last.qid] = false;
+    // Reverse the weights (approximate — find the question and option)
+    var prevQ = QBANK.filter(function(q) { return q.id === last.qid; })[0];
+    if (prevQ) {
+      var prevOpt = prevQ.opts.filter(function(o) { return o.l === last.letter; })[0];
+      if (prevOpt && prevOpt.w) {
+        for (var d in prevOpt.w) {
+          dimScores[d] -= prevOpt.w[d];
+          dimCounts[d] = Math.max(0, dimCounts[d] - 1);
+        }
+      }
+      currentQ = prevQ;
+      renderQuestion(prevQ, last.letter);
+    }
+  });
+}
+
+// ─── REPORT ───
+function generateReport() {
+  show('load');
+  var msgs = [
+    "Reading your patterns...",
+    "Mapping the intersections...",
+    "Finding what's distinctive...",
+    "Composing your profile...",
+    "Almost there..."
+  ];
+  var mi = 0;
+  loadTimer = setInterval(function() {
+    mi = (mi + 1) % msgs.length;
+    document.getElementById('loadMsg').textContent = msgs[mi];
+  }, 1800);
+
+  var ns = normalizeScores();
+  var scoreLines = [
+    "Risk & Exploration Drive: " + ns.D1 + "/100",
+    "Cognitive Adaptability: " + ns.D2 + "/100",
+    "Emotional Self-Regulation: " + ns.D3 + "/100",
+    "Sensory Sensitivity: " + ns.D4 + "/100",
+    "Structural Processing: " + ns.D5 + "/100",
+    "Holistic Pattern Recognition: " + ns.D6 + "/100",
+    "Uncertainty Tolerance: " + ns.D7 + "/100",
+    "Focus & Distraction Resistance: " + ns.D8 + "/100",
+    "Long-term Orientation: " + ns.D9 + "/100",
+    "Internal Feedback Processing: " + ns.D10 + "/100",
+    "Autonomy Drive: " + ns.D11 + "/100",
+    "Stimulus Seeking: " + ns.D12 + "/100",
+    "Principle Consistency: " + ns.D13 + "/100"
+  ];
+
+  var prompt = [
+    "You are writing a private cognitive profile for someone who just completed a behavioral assessment.",
+    "This profile is for their eyes only. It should feel uncomfortably accurate.",
+    "",
+    "INTERNAL DIMENSION SCORES (do NOT name these in the report — never use the label names):",
+    scoreLines.join("\n"),
+    "",
+    "INSTRUCTIONS:",
+    "- Do NOT mention dimension names, scores, or any technical language.",
+    "- Do NOT use personality type labels.",
+    "- Describe specific behavioral patterns and the hidden logic of how this person operates.",
+    "- The most powerful insight comes from WHERE TWO DIMENSIONS CREATE UNEXPECTED TENSION.",
+    "- Find the contradiction at the core of this person's profile and make it the spine of the report.",
+    "",
+    "Write a bilingual report (English paragraph then Chinese paragraph per section).",
+    "Use ## headers. No scores visible anywhere.",
+    "",
+    "## The Shape of Your Mind · 你的思维形状",
+    "2-3 sentences. The single most distinctive thing about how this person processes the world.",
+    "Specific enough that a stranger says 'how did it know that.'",
+    "English then Chinese.",
+    "",
+    "## What You're Good At That You Don't Fully See · 你未必意识到的优势",
+    "2 genuine strengths from the INTERACTION of their highest dimensions. Not flattery.",
+    "English then Chinese.",
+    "",
+    "## The Friction Point · 摩擦点",
+    "The ONE internal contradiction causing the most friction. Be specific about what it looks like in daily life.",
+    "English then Chinese.",
+    "",
+    "## What Others Miss About You · 别人容易误解你的地方",
+    "How this person is typically misread, and why. English then Chinese.",
+    "",
+    "## The One Move · 一个动作",
+    "One concrete behavioral shift that would unlock the most for this exact profile.",
+    "Derived from their specific tension — not generic advice.",
+    "English then Chinese.",
+    "",
+    "Tone: precise, unsentimental, intelligent. 700-900 words. No scores. No labels. Just insight."
+  ].join("\n");
+
+  fetch('/api/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt })
+  })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      clearInterval(loadTimer);
+      if (!d.text) throw new Error(JSON.stringify(d).substring(0, 300));
+      showReport(d.text);
+    })
+    .catch(function(e) {
+      clearInterval(loadTimer);
+      showReport(null, String(e));
+    });
+}
+
+function showReport(text, err) {
+  document.getElementById('repId').textContent =
+    'SKN-' + Date.now().toString(36).toUpperCase() + ' \u00b7 ' + new Date().toLocaleDateString('en-GB');
+
+  if (text) {
+    var html = text
+      .replace(/## (.+)/g, '<h2>$1</h2>')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n\n/g, '</p><p>')
+      .replace(/\n/g, '<br>');
+    document.getElementById('insightText').innerHTML = '<p>' + html + '</p>';
+  } else {
+    document.getElementById('insightText').innerHTML =
+      '<div class="errblock">Connection failed. Check your API Key in this file.<br>' +
+      '请检查文件中的 API Key 是否已替换为你的真实 Key。<br><br>' +
+      '<small style="opacity:.4">' + (err || '') + '</small></div>';
+  }
+  show('rep');
+}
+
+document.getElementById('btnStart').addEventListener('click', startTest);
+document.getElementById('btnRetake').addEventListener('click', startTest);
+</script>
+</body>
+</html>
